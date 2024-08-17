@@ -21,7 +21,27 @@ int main() {
 	int windowWidth = window.getSize().x;
 	int windowHeight = window.getSize().y;
 
-	const float GRAVITY = 5.0f;
+	//background
+	sf::Texture backgroundTexture;
+	if (!backgroundTexture.loadFromFile("../assets/images/background.jpg")) {
+		std::cerr << "Error loading background texture @assets/images";
+	}
+
+	sf::Sprite backgroundSprite(backgroundTexture);
+	backgroundSprite.setScale(2.3, 1.8);
+
+	sf::Texture rocketPlatformTexture;
+	if (!rocketPlatformTexture.loadFromFile("../assets/images/platform.png")) {
+		std::cerr << "Error loading rocket platfrm image @assets/images";
+	}
+
+	sf::Sprite rocketPlatformSprite(rocketPlatformTexture);
+	rocketPlatformSprite.setScale(0.1, 0.04);
+	rocketPlatformSprite.setPosition(windowWidth - rocketPlatformSprite.getGlobalBounds().width, windowHeight - rocketPlatformSprite.getGlobalBounds().height);
+
+
+	//game variables
+	float GRAVITY = 5.0f;
 
 	// game state
 	State gameState{ State::mainMenu };
@@ -42,7 +62,7 @@ int main() {
 	}
 
 	sf::Sprite playerSprite(playerTexture);
-	sf::Vector2f playerInitialPosition(100, 100);
+	sf::Vector2f playerInitialPosition(60, 100);
 	playerSprite.setScale(0.5, 0.5);
 	playerSprite.setPosition(playerInitialPosition);
 
@@ -85,20 +105,21 @@ int main() {
 
 			playerSprite.setOrigin(playerSprite.getGlobalBounds().width / 2, playerSprite.getGlobalBounds().height / 2);
 
-
 			if (playerSprite.getPosition().y + playerSprite.getGlobalBounds().height <= windowHeight) {
+				playerSprite.rotate(5);
 				playerSprite.move(0, GRAVITY); 
 			}
-			else {
-				// If the sprite hits the ground, keep its position fixed or lose 
-				//playerSprite.setPosition(100, windowHeight - playerSprite.getGlobalBounds().height);
-				playerSprite.setPosition(playerInitialPosition);
-				gameState = State::lose;
+			else{
+				
+				//  landing
+				if (!playerSprite.getGlobalBounds().intersects(rocketPlatformSprite.getGlobalBounds())) {
+					// If the sprite hits the ground
+					playerSprite.setPosition(playerInitialPosition);
+					gameState = State::lose;
+				}
+				playerSprite.setRotation(0);
+				GRAVITY = 0;
 			}
-
-			playerSprite.rotate(5);
-
-
 
 			sf::Event event;
 
@@ -110,6 +131,8 @@ int main() {
 
 
 			window.clear();
+			window.draw(backgroundSprite);
+			window.draw(rocketPlatformSprite);
 			window.draw(playerSprite);
 			window.display();
 		}
@@ -127,6 +150,7 @@ int main() {
 		}
 
 		if (gameState == State::lose) {
+			GRAVITY = 5.0f;
 			sf::Event event;
 			while (window.pollEvent(event))
 			{
