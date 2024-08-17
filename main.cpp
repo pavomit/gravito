@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
-
+#include <chrono>
+#include <thread>
 
 //game states 
 enum class State {
@@ -41,7 +42,8 @@ int main() {
 
 
 	//game variables
-	float GRAVITY = 5.0f;
+	float GRAVITY = 0.5f;
+	sf::Vector2f velocity(0, 0); 
 
 	// game state
 	State gameState{ State::mainMenu };
@@ -105,30 +107,56 @@ int main() {
 
 			playerSprite.setOrigin(playerSprite.getGlobalBounds().width / 2, playerSprite.getGlobalBounds().height / 2);
 
-			if (playerSprite.getPosition().y + playerSprite.getGlobalBounds().height <= windowHeight) {
-				playerSprite.rotate(5);
-				playerSprite.move(0, GRAVITY); 
-			}
-			else{
-				
-				//  landing
-				if (!playerSprite.getGlobalBounds().intersects(rocketPlatformSprite.getGlobalBounds())) {
-					// If the sprite hits the ground
-					playerSprite.setPosition(playerInitialPosition);
-					gameState = State::lose;
-				}
-				playerSprite.setRotation(0);
-				GRAVITY = 0;
-			}
-
 			sf::Event event;
 
 			while (window.pollEvent(event))
 			{
 				if (event.type == sf::Event::Closed)
 					window.close();
+				
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+					velocity.x = 10;
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+					velocity.x = -10;
+				}
+
+				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Up)) {
+					velocity.y = -10;
+				}
+
+				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Down)) {
+					velocity.y = 10;
+				}
+
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+					velocity.y = -10; 
+				}
+
 			}
 
+			if (playerSprite.getPosition().y + playerSprite.getGlobalBounds().height <= windowHeight) {
+				playerSprite.rotate(5);
+				velocity.y += GRAVITY;
+				playerSprite.move(velocity);
+			}
+			else {
+
+				//  landing
+				if (!playerSprite.getGlobalBounds().intersects(rocketPlatformSprite.getGlobalBounds())) {
+					// If the sprite hits the ground
+					playerSprite.setPosition(playerInitialPosition);
+					gameState = State::lose;
+				}
+				else {
+					playerSprite.setRotation(0);
+					GRAVITY = 0;
+					playerSprite.setRotation(0);
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					gameState = State::win;
+				}
+				
+			}
 
 			window.clear();
 			window.draw(backgroundSprite);
@@ -150,7 +178,7 @@ int main() {
 		}
 
 		if (gameState == State::lose) {
-			GRAVITY = 5.0f;
+			GRAVITY = 0.5f;
 			sf::Event event;
 			while (window.pollEvent(event))
 			{
