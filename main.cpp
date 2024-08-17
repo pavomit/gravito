@@ -158,11 +158,12 @@ int main() {
 				
 			}
 
-			if (playerSprite.getPosition().x < 0 || playerSprite.getPosition().x + playerSprite.getGlobalBounds().width > windowWidth) {
+			//window collision
+			if (playerSprite.getPosition().x - playerSprite.getGlobalBounds().width / 2 < 0 || playerSprite.getPosition().x + playerSprite.getGlobalBounds().width > windowWidth) {
 				playerSprite.move(-velocity.x, velocity.y);
 			}
 			
-			if (playerSprite.getPosition().y < 0) {
+			if (playerSprite.getPosition().y - playerSprite.getGlobalBounds().height / 2 < 0) {
 				playerSprite.move(velocity.x, -velocity.y);
 			}
 
