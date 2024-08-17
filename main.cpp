@@ -115,22 +115,22 @@ int main() {
 					window.close();
 				
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-					velocity.x = 8;
+					velocity.x = 5;
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-					velocity.x = -8;
+					velocity.x = -5;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Up)) {
-					velocity.y = -8;
+					velocity.y = -5;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Down)) {
-					velocity.y = 8;
+					velocity.y = 5;
 				}
 
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-					velocity.y = -8; 
+					velocity.y = -6; 
 				}
 
 			}
@@ -181,6 +181,7 @@ int main() {
 					window.close();
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
 					gameState = State::mainMenu;
+					playerSprite.setPosition(playerInitialPosition);
 				}
 			}
 
