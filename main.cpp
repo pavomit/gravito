@@ -42,7 +42,7 @@ int main() {
 
 
 	//game variables
-	float GRAVITY = 0.5f;
+	float GRAVITY = 0.2f;
 	sf::Vector2f velocity(0, 0); 
 
 	// game state
@@ -115,22 +115,22 @@ int main() {
 					window.close();
 				
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-					velocity.x = 10;
+					velocity.x = 8;
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-					velocity.x = -10;
+					velocity.x = -8;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Up)) {
-					velocity.y = -10;
+					velocity.y = -8;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Down)) {
-					velocity.y = 10;
+					velocity.y = 8;
 				}
 
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-					velocity.y = -10; 
+					velocity.y = -8; 
 				}
 
 			}
@@ -152,10 +152,18 @@ int main() {
 					playerSprite.setRotation(0);
 					GRAVITY = 0;
 					playerSprite.setRotation(0);
-					std::this_thread::sleep_for(std::chrono::seconds(3));
+					std::this_thread::sleep_for(std::chrono::seconds(2));
 					gameState = State::win;
 				}
 				
+			}
+
+			if (playerSprite.getPosition().x < 0 || playerSprite.getPosition().x + playerSprite.getGlobalBounds().width > windowWidth) {
+				playerSprite.move(-velocity.x, velocity.y);
+			}
+			
+			if (playerSprite.getPosition().y < 0) {
+				playerSprite.move(velocity.x, -velocity.y);
 			}
 
 			window.clear();
@@ -171,14 +179,26 @@ int main() {
 			{
 				if (event.type == sf::Event::Closed)
 					window.close();
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
+					gameState = State::mainMenu;
+				}
 			}
 
-			window.clear(sf::Color::Green);
+			sf::Text playAgain;
+			playAgain.setFont(font);
+			playAgain.setString("yapeee you won .... press Enter to play again");
+			playAgain.setFillColor(sf::Color::White);
+			playAgain.setCharacterSize(30);
+
+			playAgain.setPosition((windowWidth / 2) - playAgain.getGlobalBounds().width / 2, (windowHeight / 2) - playAgain.getGlobalBounds().height / 2);
+
+			window.clear();
+			window.draw(playAgain);
 			window.display();
 		}
 
 		if (gameState == State::lose) {
-			GRAVITY = 0.5f;
+			GRAVITY = 0.2f;
 			sf::Event event;
 			while (window.pollEvent(event))
 			{
