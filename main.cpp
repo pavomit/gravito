@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <chrono>
 #include <thread>
+#include <cmath>
+#include <ctime>
 
 //game states 
 enum class State {
@@ -14,7 +16,7 @@ enum class State {
 
 
 int main() {
-
+	
 	// window 
 	sf::RenderWindow window(sf::VideoMode(1400, 800), "Gravito");
 	window.setMouseCursorVisible(false);
@@ -69,6 +71,35 @@ int main() {
 	playerSprite.setPosition(playerInitialPosition);
 
 
+	//meteors
+	const float METEOR_MOVE_SPEED_DOWN = 2.0f;
+	const float METEOR_MOVE_SPEED_HORIZONTAL = 1.0f;
+
+	sf::Texture meteorTexture;
+	if (!meteorTexture.loadFromFile("../assets/images/meteor.png")) {
+		std::cerr << "Error loading meteor texture @assets/images";
+	}
+
+	const int numberOfMeteors{ 10 };
+	sf::Sprite meteorsSprites[numberOfMeteors];
+
+	for (int i = 0; i < numberOfMeteors; i++) {
+		meteorsSprites[i].setTexture(meteorTexture);
+		meteorsSprites[i].setScale(0.1, 0.1);
+		//meteorsSprites[i].setPosition(i * 80, 20);
+
+		float randomX = static_cast<float>(std::rand()) / RAND_MAX * windowWidth;
+		float randomY = static_cast<float>(std::rand()) / RAND_MAX * windowHeight;
+		meteorsSprites[i].setPosition(randomX, randomY);
+
+		
+		float randomVelocityX = static_cast<float>(std::rand()) / RAND_MAX * 5.0f - 2.5f; 
+		float randomVelocityY = static_cast<float>(std::rand()) / RAND_MAX * 3.0f - 1.5f; 
+		meteorsSprites[i].move(randomVelocityX, randomVelocityY);
+	}
+
+	std::srand(std::time(0));
+
 	while (window.isOpen()) {
 
 		if (gameState == State::mainMenu) {
@@ -105,7 +136,15 @@ int main() {
 
 		if (gameState == State::play) {
 
-			playerSprite.setOrigin(playerSprite.getGlobalBounds().width / 2, playerSprite.getGlobalBounds().height / 2);
+			playerSprite.setOrigin(playerSprite.getGlobalBounds().width / 2, playerSprite.getGlobalBounds().height / 2);	
+
+			// moving meteors 
+			for (int i = 0; i < numberOfMeteors; i++) {
+				meteorsSprites[i].move(0, METEOR_MOVE_SPEED_DOWN);
+
+				float randomHorizontalMovement = std::rand() % 2 == 0 ? -METEOR_MOVE_SPEED_HORIZONTAL : METEOR_MOVE_SPEED_HORIZONTAL;
+				meteorsSprites[i].move(randomHorizontalMovement, 0);
+			}
 
 			sf::Event event;
 
@@ -115,18 +154,18 @@ int main() {
 					window.close();
 				
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-					velocity.x = 5;
+					velocity.x = 7;
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-					velocity.x = -5;
+					velocity.x = -7;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Up)) {
-					velocity.y = -5;
+					velocity.y = -7;
 				}
 
 				if (sf::Keyboard::isKeyPressed(::sf::Keyboard::Down)) {
-					velocity.y = 5;
+					velocity.y = 7;
 				}
 
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
@@ -167,9 +206,28 @@ int main() {
 				playerSprite.move(velocity.x, -velocity.y);
 			}
 
+			// collision with meteors
+			for (int i = 0; i < numberOfMeteors; i++) {
+				sf::FloatRect playerBounds = playerSprite.getGlobalBounds();
+				sf::FloatRect meteorBounds = meteorsSprites[i].getGlobalBounds();
+
+				if (playerBounds.intersects(meteorBounds)) {
+					gameState = State::lose;
+					for (int i = 0; i < numberOfMeteors; i++) {
+						meteorsSprites[i].setPosition(static_cast<float>(std::rand()) / RAND_MAX * windowWidth, static_cast<float>(std::rand()) / RAND_MAX * windowHeight);
+						meteorsSprites[i].move(0, 0);
+					}
+					break; 
+				}
+			}
+
 			window.clear();
 			window.draw(backgroundSprite);
 			window.draw(rocketPlatformSprite);
+			for (int i = 0; i < numberOfMeteors; i++)
+			{
+				window.draw(meteorsSprites[i]);
+			}
 			window.draw(playerSprite);
 			window.display();
 		}
@@ -181,7 +239,14 @@ int main() {
 				if (event.type == sf::Event::Closed)
 					window.close();
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
-					gameState = State::mainMenu;
+					// Reset meteors
+					for (int i = 0; i < numberOfMeteors; i++) {
+						meteorsSprites[i].setPosition(static_cast<float>(std::rand()) / RAND_MAX * windowWidth, static_cast<float>(std::rand()) / RAND_MAX * windowHeight);
+						meteorsSprites[i].move(0, 0);
+					}
+
+					playerSprite.setPosition(playerInitialPosition);
+					gameState = State::play;
 					playerSprite.setPosition(playerInitialPosition);
 				}
 			}
